@@ -1,10 +1,14 @@
+# -*- coding: utf-8 -*-
 import os
+import re
 import json
 import requests
 from repo import repo, update_repo
 from flask import Blueprint, request
 from config import REPO, DB, SLACK_WEBHOOK_URL
-from db import load_entries, save_entries
+from db import load, save
+
+INPUT_RE = re.compile(r'(http[^ ]+) ([^\^]+) \^(.+)')
 
 
 routes = Blueprint('routes', __name__)
@@ -15,33 +19,41 @@ def index():
     try:
         # update repo first
         repo.pull()
-        entries = load_entries(db)
+        data = load(db)
         name = request.form['user_name']
-        link_or_title = request.form['text']
+        link, title, category = INPUT_RE.match(request.form['text']).groups()
+        category = category.title()
+
+        if category not in data:
+            data[category] = {}
 
         added = False
-        if link_or_title in entries:
+        if link in data[category]:
             # already exists
-            if name not in entries[link_or_title]:
+            if name not in data[category][link]['recommenders']:
                 # add new recommender
-                entries[link_or_title].append(name)
+                data[category][link]['recommenders'].append(name)
+            title = data[category][link]['title']
         else:
-            entries[link_or_title] = [name]
+            data[category][link] = {
+                'title': title,
+                'recommenders': [name]
+            }
             added = True
 
-        save_entries(entries, db)
+        save(data, db)
         update_repo(DB)
 
         if added:
-            resp = 'I added {}'.format(link_or_title)
+            resp = '🎉I added {} as "{}", thanks for the recommendation🎉'.format(link, title)
         else:
-            resp = 'I updated {}'.format(link_or_title)
+            resp = '🎉I updated {}, it was already called "{}", thanks for the recommendation🎉'.format(link, title)
         requests.post(SLACK_WEBHOOK_URL, data=json.dumps({
             'text': resp
         }))
         return ''
     except Exception as e:
         requests.post(SLACK_WEBHOOK_URL, data=json.dumps({
-            'text': 'uh oh: {}'.format(str(e))
+            'text': 'uh oh: {}: {}'.format(e.__class__.__name__, str(e))
         }))
         raise

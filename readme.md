@@ -17,8 +17,12 @@ You can then go to your Slack team's integration page and:
 
 ## Usage
 
-Just use whatever slash command you specified, followed by the link or book title!
+Just use whatever slash command you specified with the following syntax:
 
-    /rec Labyrinths
+    /rec link title ^category
 
-`darkreads` will keep track of who's recommended what
+e.g.
+
+    /rec https://thephilosophersmeme.com/ The Philosopher's Meme ^memes
+
+`darkreads` will keep track of who's recommended what for you
