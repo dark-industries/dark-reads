@@ -8,7 +8,10 @@ from flask import Blueprint, request
 from config import REPO, DB, SLACK_WEBHOOK_URL
 from db import load, save
 
-INPUT_RE = re.compile(r'(http[^ ]+) ([^\^]+) \^(.+)')
+# parses:
+# http://google.com this is the title
+# http://google.com this is the title ^category
+INPUT_RE = re.compile(r'(http[^ ]+) ([^\^]+)(\^(.+))?')
 
 
 routes = Blueprint('routes', __name__)
@@ -21,7 +24,12 @@ def index():
         repo.pull()
         data = load(db)
         name = request.form['user_name']
-        link, title, category = INPUT_RE.match(request.form['text']).groups()
+        link, title, _, category = INPUT_RE.match(request.form['text']).groups()
+        title = title.strip()
+
+        # default
+        if category is None:
+            category = 'hodgepodge'
         category = category.title()
 
         if category not in data:
