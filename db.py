@@ -1,4 +1,6 @@
+from __future__ import unicode_literals
 import re
+import codecs
 from collections import defaultdict
 
 # parses:
@@ -51,7 +53,7 @@ def format_category(category, entries):
 
 
 def load(filename):
-    with open(filename, 'r') as f:
+    with codecs.open(filename, 'r', encoding='utf-8') as f:
         lines = f.readlines()
 
     data = defaultdict(dict)
@@ -78,5 +80,5 @@ def save(data, filename):
     body = '\n\n'.join([
         format_category(name, entries)
         for name, entries in sorted(data.items())])
-    with open(filename, 'w') as db:
+    with codecs.open(filename, 'w', encoding='utf-8') as db:
         db.write(template.format(body).strip())
