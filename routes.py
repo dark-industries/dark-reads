@@ -54,9 +54,9 @@ def index():
         update_repo(DB)
 
         if added:
-            resp = '🎉I added {} as "{}", thanks for the recommendation🎉'.format(link, title)
+            resp = '🎉{} added {} as "{}", thanks for the recommendation🎉'.format(name, link, title)
         else:
-            resp = '🎉I updated {}, it was already called "{}", thanks for the recommendation🎉'.format(link, title)
+            resp = '🎉{} updated {}, it was already called "{}", thanks for the recommendation🎉'.format(name, link, title)
         requests.post(SLACK_WEBHOOK_URL, data=json.dumps({
             'text': resp
         }))
